@@ -1,10 +1,19 @@
 package collection
 
 import (
+	"bytes"
+	// "fmt"
 	set "github.com/deckarep/golang-set"
+	// "math"
+	"strconv"
 )
 
 type Collection []interface{}
+
+type Chunk struct {
+	Collection Collection
+	Done       bool
+}
 
 func NewCollection() Collection {
 	return make(Collection, 0)
@@ -32,20 +41,28 @@ func NewCollectionFromSet(set set.Set) (collection Collection) {
 
 }
 
-func (collection Collection) Chunks(count int64) (c chan interface{}) {
-	c = make(chan interface{})
+func (collection Collection) Chunks(count int64) (c chan Chunk) {
+	c = make(chan Chunk)
+
+	total := int64(len(collection))
+
+	// max := int64(math.Ceil(float64(total) / float64(count)))
 
 	go func() {
 
-		batch := []interface{}{}
+		batch := NewCollection()
 
 		var i int64
 
-		for _, item := range collection {
-			i++
-			if i%count == 0 {
+		var remaining int64 = total
 
-				c <- batch
+		for _, item := range collection {
+			remaining--
+
+			i++
+			if i%count == 0 || remaining == 0 {
+
+				c <- Chunk{batch, remaining == 0}
 				batch = nil
 
 			}
@@ -57,6 +74,26 @@ func (collection Collection) Chunks(count int64) (c chan interface{}) {
 		close(c)
 
 	}()
+
+	return
+}
+
+func (collection Collection) ToCsv() string {
+	var buffer bytes.Buffer
+
+	for _, i := range collection {
+		buffer.WriteString(strconv.FormatInt(i.(int64), 10))
+		buffer.WriteString(",")
+	}
+
+	return buffer.String()
+}
+
+func (collection Collection) ToInt64() (array []int64) {
+	for _, i := range collection {
+
+		array = append(array, i.(int64))
+	}
 
 	return
 }
