@@ -4,7 +4,7 @@ import (
 	"bytes"
 	// "fmt"
 	set "github.com/deckarep/golang-set"
-	// "math"
+	"math"
 	"strconv"
 )
 
@@ -41,12 +41,12 @@ func NewCollectionFromSet(set set.Set) (collection Collection) {
 
 }
 
-func (collection Collection) Chunks(count int64) (c chan Chunk) {
-	c = make(chan Chunk)
+func (collection Collection) Chunks(count int64) (c chan Collection, numChunks int) {
+	c = make(chan Collection)
 
 	total := int64(len(collection))
 
-	// max := int64(math.Ceil(float64(total) / float64(count)))
+	numChunks = int(math.Ceil(float64(total) / float64(count)))
 
 	go func() {
 
@@ -62,7 +62,7 @@ func (collection Collection) Chunks(count int64) (c chan Chunk) {
 			i++
 			if i%count == 0 || remaining == 0 {
 
-				c <- Chunk{batch, remaining == 0}
+				c <- batch
 				batch = nil
 
 			}
