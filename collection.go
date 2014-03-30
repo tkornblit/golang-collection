@@ -30,11 +30,9 @@ func NewCollectionFromSlice(s []interface{}) Collection {
 
 func NewCollectionFromSet(set set.Set) (collection Collection) {
 	collection = NewCollection()
-	var i int64
 
 	for item := range set {
 		collection = append(collection, item)
-		i++
 	}
 
 	return
@@ -57,17 +55,18 @@ func (collection Collection) Chunks(count int64) (c chan Collection, numChunks i
 		var remaining int64 = total
 
 		for _, item := range collection {
-			remaining--
 
+			batch = append(batch, item)
+
+			remaining--
 			i++
+
 			if i%count == 0 || remaining == 0 {
 
 				c <- batch
 				batch = nil
 
 			}
-
-			batch = append(batch, item)
 
 		}
 
