@@ -31,7 +31,7 @@ func NewCollectionFromSlice(s []interface{}) Collection {
 func NewCollectionFromSet(set set.Set) (collection Collection) {
 	collection = NewCollection()
 
-	for item := range set {
+	for item := range set.Iter() {
 		collection = append(collection, item)
 	}
 
